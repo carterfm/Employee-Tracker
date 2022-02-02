@@ -5,7 +5,7 @@ USE company_db;
 
 CREATE TABLE department_table (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(30) NOT NULL
+    department_name VARCHAR(30) NOT NULL
 );
 
 CREATE TABLE role_table (
@@ -26,4 +26,4 @@ CREATE TABLE employee_table (
     FOREIGN KEY (manager_id) REFERENCES employee_table(id) ON DELETE SET NULL
 );
 
---potentially change some of these these SET NULLs to cascade later depending on feedback from prof + TAs
+-- potentially change some of these these SET NULLs to cascade later depending on feedback from prof + TAs
