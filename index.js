@@ -63,14 +63,14 @@ const buildNameArrays = () => {
 const mainMenuOptions = [{
     type: "list",
     message: "What would you like to do?",
-    choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role", "Quit"],
+    choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role", "Add an employee", "Quit"],
     name: "mainMenuChoice"
 }];
 
 //Prompt for adding a department 
 const departmentPrompt = [{
     type: "input",
-    message: "Please enter the name of the department you would like to add to the database (Maximum length: 30 characters): ",
+    message: "Please enter the name of the department you would like to add to the database (maximum length: 30 characters): ",
     name: "newDepartment"
 }];
 
@@ -95,7 +95,30 @@ const rolePrompt = [
 ];
 
 //Prompt for adding an employee
-
+const employeePrompt = [
+    {
+        type: "input",
+        message: "Please enter the first name of this new employee (maximum length: 30 characters): ",
+        name: "firstName"
+    }, 
+    {
+        type: "input",
+        message: "Please enter the last name of this new employee (maximum length: 30 characters): ",
+        name: "lastName"
+    },
+    {
+        type: "list",
+        message: "What role will this employee be taking on?",
+        choices: listOfRoleTitles,
+        name: "roleTitle"
+    }, 
+    {
+        type: "list",
+        message: "What is the name of this employee's manager?",
+        choices: listOfEmployeeNames,
+        name: "managerName"
+    }
+]
 
 //Query to view departments
 const viewAllDepartments = () => {
@@ -121,7 +144,7 @@ const viewAllRoles = () => {
 
 //Query to view all employees
 const viewAllEmployees = () => {
-    db.query("SELECT employee_table.id AS employee_id, employee_table.first_name, employee_table.last_name, role_table.title AS role_title, department_table.department_name, role_table.salary, manager_table.last_name AS manager_last_name FROM employee_table JOIN role_table ON employee_table.role_id = role_table.id JOIN department_table ON role_table.department_id = department_table.id JOIN employee_table AS manager_table ON employee_table.manager_id = manager_table.id",
+    db.query("SELECT employee_table.id AS employee_id, employee_table.first_name, employee_table.last_name, role_table.title AS role_title, department_table.department_name, role_table.salary, manager_table.first_name AS manager_first_name, manager_table.last_name AS manager_last_name FROM employee_table JOIN role_table ON employee_table.role_id = role_table.id LEFT JOIN department_table ON role_table.department_id = department_table.id LEFT JOIN employee_table AS manager_table ON employee_table.manager_id = manager_table.id",
     (err, data) => {
         if (err) {
             throw err;
@@ -148,7 +171,7 @@ const addDepartment = async () => {
 
 //Query to add role 
 const addRole = async () => {
-    const {newRole, salary, departmentName } = await inquirer.prompt(rolePrompt);
+    const { newRole, salary, departmentName } = await inquirer.prompt(rolePrompt);
     const departmentId = departmentNamesToIds[departmentName];
 
     db.query("INSERT INTO role_table (title, salary, department_id) VALUES (?, ?, ?)", [newRole, salary, departmentId], (err, data) => {
@@ -161,6 +184,27 @@ const addRole = async () => {
         runMainLoop();
     })
 }
+
+const addEmployee = async () => {
+    const { firstName, lastName, roleTitle, managerName } = await inquirer.prompt(employeePrompt);
+    // console.log(managerName);
+    const roleId = roleTitlesToIds[roleTitle];
+    // console.log(employeeNamesToIds);
+    const managerId = employeeNamesToIds[managerName];
+    // console.log(managerId);
+
+    db.query("INSERT INTO employee_table (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)", [firstName, lastName, roleId, managerId], (err, data) => {
+        if (err) {
+            throw err;
+        }
+        // console.log(data);
+        listOfEmployeeNames.push(firstName + " " + lastName);
+        employeeNamesToIds[firstName + " " + lastName] = data.insertId;
+        console.log("\nAdded " + firstName + " " + lastName + " to employee_table\n");
+        runMainLoop();
+    });
+}
+
 
 const runMainLoop = async () => {
     const { mainMenuChoice } = await inquirer.prompt(mainMenuOptions);
@@ -182,6 +226,9 @@ const runMainLoop = async () => {
             break;
         case "Add a role":
             addRole();
+            break;
+        case "Add an employee":
+            addEmployee();
             break;
         default: 
             keepLooping = false;
