@@ -22,6 +22,22 @@ const db = mysql.createConnection({
 //     console.log(data);
 // });
 
+//Prompts to use in inquirer calls
+//Prompt for navigating the main program loop
+const mainMenuOptions = [{
+    type: "list",
+    message: "What would you like to do?",
+    choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Quit"],
+    name: "mainMenuChoice"
+}];
+
+//Prompt for adding a department 
+const departmentPrompt = [{
+    type: "input",
+    message: "Please enter the name of the department you would like to add to the database (Maximum length: 30 characters): ",
+    name: "newDepartment"
+}];
+
 //Query to view departments
 const viewAllDepartments = () => {
     db.query("SELECT department_name, id AS department_id FROM department_table", (err, data) => {
@@ -56,16 +72,20 @@ const viewAllEmployees = () => {
     });
 }
 
-//Prompt for navigating the main program loop
-const mainMenuOptions = [{
-    type: "list",
-    prompt: "What would you like to do?",
-    choices: ["View all departments", "View all roles", "View all employees", "Quit"],
-    name: "mainMenuChoice"
-}];
+//Query to add department
+const addDepartment = async () => {
+    const { newDepartment } = await inquirer.prompt(departmentPrompt);
+
+    db.query("INSERT INTO department_table (department_name) VALUES (?)", newDepartment, (err, data) => {
+        if (err) {
+            throw err;
+        }
+        console.log("\nAdded " + newDepartment + " to department_table\n");
+        runMainLoop();
+    });
+}
 
 const runMainLoop = async () => {
-
     const { mainMenuChoice } = await inquirer.prompt(mainMenuOptions);
 
     switch (mainMenuChoice) {
@@ -80,9 +100,13 @@ const runMainLoop = async () => {
             //query to view all employees
             viewAllEmployees();
             break;
+        case "Add a department":
+            addDepartment();
+            break;
         default: 
             keepLooping = false;
             console.log("\nQuitting. Thank you for using Employee Tracker!");
+            exit(0);
             break;
         }
 }

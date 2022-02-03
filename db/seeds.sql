@@ -19,7 +19,7 @@ VALUES ("junior accountant", 73000, 1),
         ("senior sales rep", 140000, 5);
 
 INSERT INTO employee_table (first_name, last_name, role_id, manager_id)
-VALUES ("Alfred", "Bossman", 5),
+VALUES ("Alfred", "Bossman", 5, null),
         ("John", "Accounting", 2, 1),
         ("Jimmy", "Accounting", 1, 2),
         ("Karen", "Handler", 9, 1),
