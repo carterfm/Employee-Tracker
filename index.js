@@ -1,6 +1,5 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql2');
-const figlet = require('figlet');
 
 const db = mysql.createConnection({
     host: 'localhost',
@@ -9,7 +8,7 @@ const db = mysql.createConnection({
     // MySQL password
     // How do we deal with deploying this? Will the user have to put their own MySQL password in there?
     // Ask about this tomorrow morning
-    password: 'password',
+    password: '',
     database: 'company_db'
 });
 
@@ -63,7 +62,7 @@ const buildNameArrays = () => {
 const mainMenuOptions = [{
     type: "list",
     message: "What would you like to do?",
-    choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role", "Add an employee", "Quit"],
+    choices: ["View all departments", "View all roles", "View all employees", "Add a department", "Add a role", "Add an employee", "Update an employee's role", "Quit"],
     name: "mainMenuChoice"
 }];
 
@@ -118,7 +117,23 @@ const employeePrompt = [
         choices: listOfEmployeeNames,
         name: "managerName"
     }
-]
+];
+
+//Prompt for updating employee role
+const updateEmployeePrompt = [
+    {
+        type: "list",
+        message: "What is the name of the employee whose role you wish to change?",
+        choices: listOfEmployeeNames,
+        name: "employeeName"
+    },
+    {
+        type: "list",
+        message: "What new role will this employee be taking on?",
+        choices: listOfRoleTitles,
+        name: "newRoleTitle"
+    }
+];
 
 //Query to view departments
 const viewAllDepartments = () => {
@@ -187,11 +202,8 @@ const addRole = async () => {
 
 const addEmployee = async () => {
     const { firstName, lastName, roleTitle, managerName } = await inquirer.prompt(employeePrompt);
-    // console.log(managerName);
     const roleId = roleTitlesToIds[roleTitle];
-    // console.log(employeeNamesToIds);
     const managerId = employeeNamesToIds[managerName];
-    // console.log(managerId);
 
     db.query("INSERT INTO employee_table (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)", [firstName, lastName, roleId, managerId], (err, data) => {
         if (err) {
@@ -205,6 +217,19 @@ const addEmployee = async () => {
     });
 }
 
+const updateEmployeeRole = async () => {
+    const { employeeName, newRoleTitle } = await inquirer.prompt(updateEmployeePrompt);
+    const roleId = roleTitlesToIds[newRoleTitle];
+    const employeeId = employeeNamesToIds[employeeName];
+
+    db.query("UPDATE employee_table SET role_id = ? WHERE id = ?", [roleId, employeeId], (err, data) => {
+        if (err) {
+            throw err;
+        }
+        console.log("\Updated " + employeeName + "'s role\n");
+        runMainLoop();
+    });
+}
 
 const runMainLoop = async () => {
     const { mainMenuChoice } = await inquirer.prompt(mainMenuOptions);
@@ -229,6 +254,9 @@ const runMainLoop = async () => {
             break;
         case "Add an employee":
             addEmployee();
+            break;
+        case "Update an employee's role":
+            updateEmployeeRole();
             break;
         default: 
             keepLooping = false;
