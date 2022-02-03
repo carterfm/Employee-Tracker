@@ -135,6 +135,8 @@ const updateEmployeePrompt = [
     }
 ];
 
+
+//QUERIES
 //Query to view departments
 const viewAllDepartments = () => {
     db.query("SELECT department_name, id AS department_id FROM department_table", (err, data) => {
@@ -272,15 +274,3 @@ const runApp = async () => {
 }
 
 runApp();
-
-
-//Test code here
-
-
-
-//Pseudo-code 
-//On startup, we immediately enter the main program loop
-//We're prompted to view all departments, view all roles, view all employees, add a department, 
-//add a role, add an employee, update an employee role
-// -> view all departments
-// -> -> print a formatted table displaying all department names and department ids
