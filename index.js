@@ -263,6 +263,7 @@ const runMainLoop = async () => {
         default: 
             keepLooping = false;
             console.log("\nQuitting. Thank you for using Employee Tracker!");
+            db.end();
             break;
         }
 }
